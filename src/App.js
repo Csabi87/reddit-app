@@ -1,36 +1,44 @@
-import './App.css';
-import db from './firebase.config';
+import './App.scss';
+import db from './firebase.config.js';
 import React,{useState,useEffect} from 'react';
 
 function App() {
-  const [blogs, setBlogs]=useState([]);
+  const [posts, setPosts] = useState([]);
 
-  const fetchBlogs=async()=>{
-    const response=db.collection('posts');
-    const data=await response.get();
-    data.docs.forEach(item=>{
-     setBlogs([...blogs,item.data()])
-    })
-  }
+  useEffect(()=> {
+    db.collection('posts').get()
+      .then((querySnapshot) => {
+        const data = [];
+        querySnapshot.forEach((doc) => {
+          const document = {
+              ...doc.data(),
+              id: doc.id
+          };
+          data.push(document);
+        })
+        setPosts(data);
+      });
 
-  useEffect(() => {
-    fetchBlogs();
   }, []);
 
-  
+
   return (
-    <div className="App">
-      {
-        blogs && blogs.map(blog=>{
-          return(
-            <div key='blog.title' className="blog-container">
-              <h4>{blog.title}</h4>
-              <p>{blog.url}</p>              
-            </div>
-          )
-        })
-      }
-    </div>
+    <main>
+      {posts.map(post => (
+        <div className="container" key={post.id}>
+          <div className="vote">
+            <p>{post.score}</p>
+          </div>
+          <div className="content">
+            <h1>{post.title}</h1>
+            {post.content &&
+            <p>{post.content}</p>
+          }
+            <img src={post.url} alt=""/>
+          </div>
+        </div>
+      ))}
+    </main>
   );
 }
 
